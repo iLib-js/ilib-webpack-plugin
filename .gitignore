@@ -1,0 +1,4 @@
+jsdoc
+node_modules/*
+!node_modules/nodeunit
+package-lock.json
