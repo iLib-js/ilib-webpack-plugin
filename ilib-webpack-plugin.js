@@ -268,13 +268,12 @@ function emitLocaleData(compilation, options) {
                     parts.forEach(function(localeDir) {
                         try {
                             var cwdToData = path.join(dataRoot, localeDir, filename + ".json");
+                            var part = localeDir === "." ? "root" : localeDir;
+                            part = part.replace(/\//g, "-");
+                            if (!outputSet[part]) {
+                                outputSet[part] = {};
+                            }
                             if (fs.existsSync(cwdToData)) {
-                                var part = localeDir === "." ? "root" : localeDir;
-                                part = part.replace(/\//g, "-");
-
-                                if (!outputSet[part]) {
-                                    outputSet[part] = {};
-                                }
                                 if (!outputSet[part][filename]) {
                                     var line = "ilib.data." + toIlibDataName(filename);
                                     if (part !== "root") {
@@ -287,6 +286,9 @@ function emitLocaleData(compilation, options) {
                                     outputSet[part][filename] = line;
                                     manifest.add(path.join(localeDir, filename + ".json"));
                                 }
+                            } else {
+                                outputSet[part][filename] = "";
+                                manifest.add(path.join(localeDir, filename + ".json"));
                             }
                         } catch (e) {
                             console.log("Error: " + e);
@@ -408,17 +410,13 @@ function emitLocaleData(compilation, options) {
                 path.join(options.ilibRoot, "lib/ilib.js") :
                 "ilib/lib/ilib.js";
 
-            var output = (options.assembly !== "dynamic") ?
-                    "module.exports.installLocale = function(ilib) {\n" :
-                    "var ilib = require('" + ilibRoot + "');\n";
+            var output = "module.exports.installLocale = function(ilib) {\n";
 
             for (var dataFile in dataFiles) {
                 output += dataFiles[dataFile];
             }
 
-            output += (options.assembly !== "dynamic") ?
-                    "};\n" :
-                    "module.exports = ilib;\n";
+            output += "};\n";
 
             if (options.debug) console.log("Emitting " + outputFileName + " size " + output.length);
 
