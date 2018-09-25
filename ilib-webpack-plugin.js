@@ -142,7 +142,7 @@ function emitLocaleData(compilation, options) {
                 scripts.add(full.getScript());
             }
         });
-        if (options.debug) console.log("emitting locale data for locales " + locales.join(","));
+        if (options.debug) console.log("ilib-webpack-plugin: emitting locale data for locales " + locales.join(","));
 
         locales.forEach(function(locale) {
             localeData.forEach(function(filename) {
@@ -223,7 +223,7 @@ function emitLocaleData(compilation, options) {
                                 manifest.add(path.join("zoneinfo", zone + ".json"));
                             }
                         } catch (e) {
-                            console.log("Error: " + e);
+                            console.log("ilib-webpack-plugin: Error: " + e);
                         }
                     }.bind(this));
 
@@ -291,7 +291,7 @@ function emitLocaleData(compilation, options) {
                                 manifest.add(path.join(localeDir, filename + ".json"));
                             }
                         } catch (e) {
-                            console.log("Error: " + e);
+                            console.log("ilib-webpack-plugin: Error: " + e);
                         }
                     }.bind(this));
                 }
@@ -355,7 +355,7 @@ function emitLocaleData(compilation, options) {
                         manifest.add(path.join(form, script + ".json"));
                     }
                 } catch (e) {
-                    console.log("Error: " + e);
+                    console.log("ilib-webpack-plugin: Error: " + e);
                 }
             }
         }
@@ -368,7 +368,7 @@ function emitLocaleData(compilation, options) {
             } else {
                 var set = (normalizations.size === 0 || (normalizations[form].has("") && normalizations.size === 1)) ? scripts : normalizations[form];
                 set.forEach(function(script) {
-                    if (options.debug) console.log("Including " + form + " for script " + script);
+                    if (options.debug) console.log("ilib-webpack-plugin: Including " + form + " for script " + script);
                     addForm(form, script);
                 });
             }
@@ -385,7 +385,7 @@ function emitLocaleData(compilation, options) {
         var outputPath = path.join(outputDir, "locales"),
             outputFile = path.join(outputPath, "localmanifest.js");
         makeDirs(outputPath);
-        if (options.debug) console.log("Emitting local manifest " + outputFile);
+        if (options.debug) console.log("ilib-webpack-plugin: Emitting local manifest " + outputFile);
         var text = "module.exports=" + JSON.stringify(localManifest) + ";\n";
         sources[outputFile] = text;
         makeDirs(outputPath);
@@ -397,7 +397,7 @@ function emitLocaleData(compilation, options) {
             })
         };
         outputFile = path.join(outputPath, "remotemanifest.js");
-        if (options.debug) console.log("Emitting remote manifest " + outputFile);
+        if (options.debug) console.log("ilib-webpack-plugin: Emitting remote manifest " + outputFile);
         text = "module.exports=" + JSON.stringify(remoteManifest) + ";\n";
         sources[outputFile] = text;
         fs.writeFileSync(outputFile, text, "utf-8");
@@ -418,19 +418,19 @@ function emitLocaleData(compilation, options) {
 
             output += "};\n";
 
-            if (options.debug) console.log("Emitting " + outputFileName + " size " + output.length);
+            if (options.debug) console.log("ilib-webpack-plugin: Emitting " + outputFileName + " size " + output.length);
 
             var outputFile = path.join(outputPath, outputFileName);
-            if (options.debug) console.log("Writing to " + outputFile);
-            // makeDirs(path.dirname(outputFile));
-            // fs.writeFileSync(outputFile, output, "utf-8");
+            //if (options.debug) console.log("ilib-webpack-plugin: Writing to " + outputFile);
+            //makeDirs(path.dirname(outputFile));
+            //fs.writeFileSync(outputFile, output, "utf-8");
             sources[outputFile] = output;   // remember this so we can update the in-memory modules later
         }
 
-        // console.log("Done emitting locale data.");
+        // console.log("ilib-webpack-plugin: Done emitting locale data.");
         return sources;
     } else {
-        console.log("No data to include");
+        console.log("ilib-webpack-plugin: No data to include");
         return [];
     }
 }
@@ -459,7 +459,7 @@ IlibDataPlugin.prototype.apply = function(compiler) {
                         }
                     });
                 } catch (e) {
-                    console.log(e.toString());
+                    console.log("ilib-webpack-plugin: " + e.toString());
                     throw e;
                 }
             }
