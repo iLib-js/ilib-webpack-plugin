@@ -50,6 +50,6 @@
         "test": "ant test"
     },
     "dependencies": {
-        "ilib": "^14.0.0"
+        "ilib": "^14.1.0"
     }
 }
