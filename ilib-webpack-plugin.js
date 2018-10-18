@@ -437,8 +437,8 @@ function emitLocaleData(compilation, options) {
 
 function IlibDataPlugin(options) {
     this.options = options;
-    
-    loadIlibClasses();
+
+    loadIlibClasses(options.ilibRoot);
 }
 
 IlibDataPlugin.prototype.apply = function(compiler) {
