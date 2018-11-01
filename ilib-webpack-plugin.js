@@ -445,9 +445,15 @@ IlibDataPlugin.prototype.apply = function(compiler) {
     compiler.plugin('compilation', function(compilation, callback) {
         // console.log("@@@@@@@@@@@@@@@@ compilation");
         
+        compiler.plugin("watch-run", function(compiler, callback) {
+            if (typeof(compiler.watchMode) === "undefined") {
+                compiler.watchMode = true;
+            }
+        });
+
         compilation.plugin('finish-modules', function(modules) {
             // console.log("@@@@@@@@@@@@@@@@ finish-modules");
-            if (compilation.localeDataSet && compilation.localeDataSet.size > 0) {
+            if (!compilation.compiler.watchMode && compilation.localeDataSet && compilation.localeDataSet.size > 0) {
                 try {
                     var sources = emitLocaleData(compilation, this.options);
                     
