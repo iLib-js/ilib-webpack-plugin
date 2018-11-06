@@ -89,7 +89,7 @@ function calcDataRoot(options) {
 
 var normPattern = /(nfc|nfd|nfkc|nfkd)(\/(\w+))?/g;
 
-// keep track of which dirs have already had locale data emitted already
+// keep track of which dirs have already had locale data emitted
 var localeDataEmitted = {};
 
 /**
@@ -101,7 +101,7 @@ var localeDataEmitted = {};
  * and has not changed, and true if the locale data needs to be re-emitted
  */
 function isDirty(compilation) {
-    // check the cache first so we don't emit twice
+    // check the cache to see if it's already been emitted
     var outputDir = compilation.options.output.path;
     return !localeDataEmitted[outputDir];
 }
@@ -136,11 +136,10 @@ function isDirty(compilation) {
  * were emitted by this function
  */
 function emitLocaleData(compilation, options) {
-    // check the cache first so we don't emit twice
-    var outputDir = compilation.options.output.path;
     var outputFileName, output;
     var scripts = new Set();
     var normalizations = {};
+    var outputDir = compilation.options.output.path;
     var sources = {};
 
     var charsets = new Set();
