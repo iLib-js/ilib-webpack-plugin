@@ -89,22 +89,8 @@ function calcDataRoot(options) {
 
 var normPattern = /(nfc|nfd|nfkc|nfkd)(\/(\w+))?/g;
 
-// keep track of which dirs have already had locale data emitted
-var localeDataEmitted = {};
-
-/**
- * Return whether or not the locale data has been emitted already for the
- * output dir.
- *
- * @param {Compilation} compilation the webpack compilation
- * @returns {boolean} false if the locale data has already been emitted
- * and has not changed, and true if the locale data needs to be re-emitted
- */
-function isDirty(compilation) {
-    // check the cache to see if it's already been emitted
-    var outputDir = compilation.options.output.path;
-    return !localeDataEmitted[outputDir];
-}
+// keep track of whether or not the locale data has already been emitted
+var localeDataEmitted;
 
 /**
  * Produce a set of js files that contain the necessary
@@ -136,10 +122,14 @@ function isDirty(compilation) {
  * were emitted by this function
  */
 function emitLocaleData(compilation, options) {
+    if (localeDataEmitted) {
+        return localeDataEmitted;
+    }
+
     var outputFileName, output;
     var scripts = new Set();
     var normalizations = {};
-    var outputDir = compilation.options.output.path;
+    var outputDir = path.resolve(options.tempDir || 'assets');
     var sources = {};
 
     var charsets = new Set();
@@ -437,14 +427,14 @@ function emitLocaleData(compilation, options) {
 
         var outputFile = path.join(outputPath, outputFileName);
         if (options.debug) console.log("ilib-webpack-plugin: Emitting " + outputFile + " size " + output.length);
-        //if (options.debug) console.log("ilib-webpack-plugin: Writing to " + outputFile);
-        //makeDirs(path.dirname(outputFile));
-        //fs.writeFileSync(outputFile, output, "utf-8");
+        // if (options.debug) console.log("ilib-webpack-plugin: Writing to " + outputFile);
+        makeDirs(path.dirname(outputFile));
+        fs.writeFileSync(outputFile, output, "utf-8");
         sources[outputFile] = output;   // remember this so we can update the in-memory modules later
     }
 
     // console.log("ilib-webpack-plugin: Done emitting locale data.");
-    localeDataEmitted[outputDir] = sources;
+    localeDataEmitted = sources;
 
     return sources;
 };
@@ -462,15 +452,9 @@ IlibDataPlugin.prototype.apply = function(compiler) {
         // console.log("@@@@@@@@@@@@@@@@ compilation");
         compilation.ilibWebpackPlugin = this; // make sure the ilib webpack loaders can find this plugin
 
-        compiler.plugin("watch-run", function(compiler, callback) {
-            if (typeof(compiler.watchMode) === "undefined") {
-                compiler.watchMode = true;
-            }
-        });
-
         compilation.plugin('finish-modules', function(modules) {
             // console.log("@@@@@@@@@@@@@@@@ finish-modules");
-            if (!compilation.compiler.watchMode && localeData.size > 0 && isDirty(compilation)) {
+            if (localeData.size > 0) {
                 try {
                     var sources = emitLocaleData(compilation, this.options);
 
@@ -486,7 +470,7 @@ IlibDataPlugin.prototype.apply = function(compiler) {
                     throw e;
                 }
             } else if (this.options.debug) {
-                console.log("ilib-webpack-plugin: not writing data: in watch mode, locale data is not dirty, or locale data size is zero");
+                console.log("ilib-webpack-plugin: not writing data: locale data is not dirty or locale data size is zero");
             }
         }.bind(this));
     }.bind(this));
@@ -502,13 +486,13 @@ IlibDataPlugin.prototype.apply = function(compiler) {
 IlibDataPlugin.prototype.addData = function(data) {
     if (!localeData.has(data)) {
         // clear the cache to force the locale data to be emitted again next time
-        localeDataEmitted = {};
+        localeDataEmitted = undefined;
     }
     localeData.add(data);
 };
 
 
-var localeDataFiles = {};
+var localeDataFiles;
 
 /**
  * Produce a set of js files that will eventually contain
@@ -542,11 +526,9 @@ var localeDataFiles = {};
  * were emitted by this function
  */
 IlibDataPlugin.prototype.getDummyLocaleDataFiles = function(compilation) {
-    var outputDir = compilation.options.output.path;
-
     // search the cache first
-    if (localeDataFiles[outputDir]) {
-        return localeDataFiles[outputDir];
+    if (localeDataFiles) {
+        return localeDataFiles;
     }
 
     // not in the cache, so create the files
@@ -554,6 +536,7 @@ IlibDataPlugin.prototype.getDummyLocaleDataFiles = function(compilation) {
     var outputSet = new Set();
 
     var locales = this.options.locales;
+    var tempDir = this.options.tempDir || "assets";
 
     if (this.options.debug) console.log("Creating locale data for locales " + locales.join(","));
 
@@ -586,7 +569,7 @@ IlibDataPlugin.prototype.getDummyLocaleDataFiles = function(compilation) {
             return name + ".js";
         })
     };
-    var outputPath = path.join(outputDir, "locales");
+    var outputPath = path.join(tempDir, "locales");
     makeDirs(outputPath);
     var manifestPath = path.join(outputPath, "ilibmanifest.json");
     if (!fs.existsSync(manifestPath)) {
@@ -608,7 +591,7 @@ IlibDataPlugin.prototype.getDummyLocaleDataFiles = function(compilation) {
 
     // console.log("Done emitting locale data.");
     files = files.concat(["ilibmanifest"]);
-    localeDataFiles[outputDir] = files;
+    localeDataFiles = files;
     return files;
 };
 
