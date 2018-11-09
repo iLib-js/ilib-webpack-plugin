@@ -122,10 +122,14 @@ var localeDataEmitted;
  * were emitted by this function
  */
 function emitLocaleData(compilation, options) {
+    if (localeDataEmitted) {
+        return localeDataEmitted;
+    }
+
     var outputFileName, output;
     var scripts = new Set();
     var normalizations = {};
-    var outputDir = options.tempDir || 'assets';
+    var outputDir = path.resolve(options.tempDir || 'assets');
     var sources = {};
 
     var charsets = new Set();
@@ -448,18 +452,9 @@ IlibDataPlugin.prototype.apply = function(compiler) {
         // console.log("@@@@@@@@@@@@@@@@ compilation");
         compilation.ilibWebpackPlugin = this; // make sure the ilib webpack loaders can find this plugin
 
-        compiler.plugin("watch-run", function(compiler, callback) {
-            if (typeof(compiler.watchMode) === "undefined") {
-                compiler.watchMode = true;
-            }
-            if (typeof(callback) === "function") {
-                callback();
-            }
-        });
-
         compilation.plugin('finish-modules', function(modules) {
             // console.log("@@@@@@@@@@@@@@@@ finish-modules");
-            if (localeData.size > 0 && !localeDataEmitted) {
+            if (localeData.size > 0) {
                 try {
                     var sources = emitLocaleData(compilation, this.options);
 
