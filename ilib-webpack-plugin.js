@@ -129,7 +129,7 @@ function emitLocaleData(compilation, options) {
     var outputFileName, output;
     var scripts = new Set();
     var normalizations = {};
-    var outputDir = path.resolve(options.tempDir || 'assets');
+    var outputDir = path.resolve(path.join(process.cwd(), options.tempDir || 'assets'));
     var sources = {};
 
     var charsets = new Set();
@@ -536,7 +536,7 @@ IlibDataPlugin.prototype.getDummyLocaleDataFiles = function(compilation) {
     var outputSet = new Set();
 
     var locales = this.options.locales;
-    var tempDir = this.options.tempDir || "assets";
+    var tempDir = path.resolve(path.join(process.cwd(), this.options.tempDir || 'assets'));
 
     if (this.options.debug) console.log("Creating locale data for locales " + locales.join(","));
 
