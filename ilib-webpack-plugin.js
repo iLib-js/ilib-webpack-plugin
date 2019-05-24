@@ -448,11 +448,21 @@ function IlibDataPlugin(options) {
 }
 
 IlibDataPlugin.prototype.apply = function(compiler) {
-    compiler.plugin('compilation', function(compilation, callback) {
+    // webpack 4.X or 3.X?
+    var compilationHook = (typeof(compiler.hooks) !== "undefined") ?
+        compiler.hooks.compilation.tap.bind(compiler.hooks.compilation, 'IlibDataPlugin') :
+        compiler.plugin.bind(compiler, 'compilation');
+
+    compilationHook(function(compilation, callback) {
         // console.log("@@@@@@@@@@@@@@@@ compilation");
         compilation.ilibWebpackPlugin = this; // make sure the ilib webpack loaders can find this plugin
 
-        compilation.plugin('finish-modules', function(modules) {
+        // webpack 4.X or 3.X?
+        var finishModulesHook = (typeof(compilation.hooks) !== "undefined") ?
+            compilation.hooks.finishModules.tap.bind(compilation.hooks.finishModules, 'IlibDataPlugin') :
+            compilation.plugin.bind(compilation, 'finish-modules');
+
+        finishModulesHook(function(modules) {
             // console.log("@@@@@@@@@@@@@@@@ finish-modules");
             if (localeData.size > 0) {
                 try {
